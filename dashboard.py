@@ -207,7 +207,8 @@ def get_streamlit_layout():
             bgcolor="white",
             bordercolor=STREAMLIT_COLORS['primary'],
             font_size=14, 
-            font_family=f'"{font_family}", Arial, sans-serif'
+            font_family=f'"{font_family}", Arial, sans-serif',
+            font_color="black"
         ),
         'colorway': list(STREAMLIT_COLORS.values())
     }
