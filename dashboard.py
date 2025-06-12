@@ -52,15 +52,15 @@ font_css, font_family, font_status = get_font_setup()
 
 # Цветовая палитра Streamlit
 STREAMLIT_COLORS = {
-    'primary': '#FF6B35',      # оранжевый
-    'secondary': '#4ECDC4',    # бирюзовый  
-    'success': '#45B7D1',      # голубой
-    'warning': '#96CEB4',      # мятный
-    'info': '#FECA57',         # желтый
-    'purple': '#A8E6CF',       # светло-зеленый
-    'dark': '#2C3E50',         # темно-синий
-    'light': '#ECF0F1',        # светло-серый
-    'accent': '#E17055'        # коралловый
+    'primary': '#1E3A8A',      # темно-синий
+    'secondary': '#3B82F6',    # синий
+    'success': '#10B981',      # зеленый
+    'warning': '#F59E0B',      # оранжевый
+    'info': '#6366F1',         # индиго
+    'purple': '#8B5CF6',       # фиолетовый
+    'dark': '#1F2937',         # темно-серый
+    'light': '#F3F4F6',        # светло-серый
+    'accent': '#DC2626'        # красный
 }
 
 # Стили CSS для красивого дизайна
@@ -82,7 +82,7 @@ st.markdown(f"""
     
     .main-header {{
         font-size: 3.5rem;
-        background: linear-gradient(45deg, {STREAMLIT_COLORS['primary']}, {STREAMLIT_COLORS['accent']});
+        background: linear-gradient(45deg, {STREAMLIT_COLORS['primary']}, {STREAMLIT_COLORS['secondary']});
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -93,22 +93,22 @@ st.markdown(f"""
     }}
     
     .metric-card {{
-        background: linear-gradient(135deg, #f0f2f6 0%, #ffffff 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
         padding: 1.5rem;
         border-radius: 15px;
         border-left: 5px solid var(--primary-color);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
         font-family: '{font_family}', sans-serif !important;
         transition: transform 0.2s ease;
     }}
     
     .metric-card:hover {{
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 30px rgba(30, 58, 138, 0.15);
     }}
     
     .sidebar .sidebar-content {{
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
         font-family: '{font_family}', sans-serif !important;
     }}
     
@@ -119,8 +119,29 @@ st.markdown(f"""
         color: var(--text-color);
     }}
     
+    .stTabs [data-baseweb="tab-list"] button {{
+        background-color: transparent;
+        border-radius: 10px 10px 0 0;
+        border: none;
+        padding: 12px 20px;
+        margin-right: 4px;
+        transition: all 0.3s ease;
+    }}
+    
     .stTabs [data-baseweb="tab-list"] button:hover {{
-        background-color: rgba(255, 107, 53, 0.1);
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(59, 130, 246, 0.1));
+        transform: translateY(-2px);
+    }}
+    
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {{
+        background: linear-gradient(135deg, {STREAMLIT_COLORS['primary']}, {STREAMLIT_COLORS['secondary']});
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+    }}
+    
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {{
+        color: white !important;
+        font-weight: 700;
     }}
     
     .stSelectbox label, .stCheckbox label, .stRadio label {{
