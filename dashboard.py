@@ -493,17 +493,17 @@ def main():
         
         with col1_tab2:
             # Топ известных ресторанов
-            if 'Какие суши-рестораны в г. Омск  знают' in df.columns and 'кол-во.' in df.columns:
-                known_data = df[['Какие суши-рестораны в г. Омск  знают', 'кол-во.']].dropna()
+            if 'Какие суши-рестораны в г. Омск  знают' in df.columns and 'кол-во.1' in df.columns:
+                known_data = df[['Какие суши-рестораны в г. Омск  знают', 'кол-во.1']].dropna()
                 if not known_data.empty:
-                    known_data = known_data.sort_values('кол-во.', ascending=True)
+                    known_data = known_data.sort_values('кол-во.1', ascending=True)
                     fig_known = px.bar(
                         known_data,
-                        x='кол-во.',
+                        x='кол-во.1',
                         y='Какие суши-рестораны в г. Омск  знают',
                         orientation='h',
                         title="🏆 Известность суши-ресторанов в Омске",
-                        color='кол-во.',
+                        color='кол-во.1',
                         color_continuous_scale=[[0, STREAMLIT_COLORS['warning']], [1, STREAMLIT_COLORS['secondary']]]
                     )
                     fig_known.update_layout(
