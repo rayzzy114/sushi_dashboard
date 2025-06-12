@@ -77,7 +77,7 @@ st.markdown(f"""
     }}
     
     * {{
-        font-family: '{font_family}', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+        font-family: "{font_family}", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif !important;
     }}
     
     .main-header {{
@@ -89,7 +89,7 @@ st.markdown(f"""
         text-align: center;
         margin-bottom: 2rem;
         font-weight: 700;
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
     }}
     
     .metric-card {{
@@ -98,7 +98,7 @@ st.markdown(f"""
         border-radius: 15px;
         border-left: 5px solid var(--primary-color);
         box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
         transition: transform 0.2s ease;
     }}
     
@@ -109,15 +109,15 @@ st.markdown(f"""
     
     .sidebar .sidebar-content {{
         background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
     }}
     
-    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-        font-family: '{font_family}', sans-serif !important;
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {{
+        font-family: "{font_family}", sans-serif !important;
         font-weight: 600;
         font-size: 18px;
         color: #1F2937;
-    }
+    }}
     
     .stTabs [data-baseweb="tab-list"] button {{
         background-color: transparent;
@@ -145,23 +145,23 @@ st.markdown(f"""
     }}
     
     .stSelectbox label, .stCheckbox label, .stRadio label {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
         font-weight: 500;
-        color: var(--text-color);
+        color: #1F2937;
     }}
     
     .stDataFrame, .stTable {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
     }}
     
     h1, h2, h3, h4, h5, h6 {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
         font-weight: 600;
         color: #1F2937;
     }}
     
     .stMetric {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
     }}
     
     .stMetric > div > div > div > div {{
@@ -170,12 +170,12 @@ st.markdown(f"""
     }}
     
     .stInfo, .stSuccess, .stWarning, .stError {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
         border-radius: 10px;
     }}
     
     .element-container {{
-        font-family: '{font_family}', sans-serif !important;
+        font-family: "{font_family}", sans-serif !important;
     }}
     
     /* Кастомизация графиков */
@@ -198,8 +198,8 @@ st.markdown(f"""
 def get_streamlit_layout():
     """Настройки для всех графиков в стиле Streamlit"""
     return {
-        'font': dict(size=16, family=f"'{font_family}', Arial, sans-serif"),
-        'title_font': dict(size=24, family=f"'{font_family}', Arial, sans-serif", color="#1F2937"),
+        'font': dict(size=16, family=f'"{font_family}", Arial, sans-serif'),
+        'title_font': dict(size=24, family=f'"{font_family}", Arial, sans-serif', color="#1F2937"),
         'plot_bgcolor': 'rgba(0,0,0,0)',
         'paper_bgcolor': 'rgba(0,0,0,0)',
         'margin': dict(l=60, r=60, t=100, b=60),
@@ -207,7 +207,7 @@ def get_streamlit_layout():
             bgcolor="white",
             bordercolor=STREAMLIT_COLORS['primary'],
             font_size=14, 
-            font_family=f"'{font_family}', Arial, sans-serif"
+            font_family=f'"{font_family}", Arial, sans-serif'
         ),
         'colorway': list(STREAMLIT_COLORS.values())
     }
@@ -237,7 +237,7 @@ def create_custom_chart(fig, title_color=None):
             bgcolor="rgba(255,255,255,0.8)",
             bordercolor=STREAMLIT_COLORS['light'],
             borderwidth=1,
-            font=dict(family=f"'{font_family}', Arial, sans-serif", size=12)
+            font=dict(family=f'"{font_family}", Arial, sans-serif', size=12)
         )
     )
     
