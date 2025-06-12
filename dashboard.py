@@ -112,12 +112,12 @@ st.markdown(f"""
         font-family: '{font_family}', sans-serif !important;
     }}
     
-    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {{
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
         font-family: '{font_family}', sans-serif !important;
         font-weight: 600;
         font-size: 18px;
-        color: var(--text-color);
-    }}
+        color: #1F2937;
+    }
     
     .stTabs [data-baseweb="tab-list"] button {{
         background-color: transparent;
@@ -157,7 +157,7 @@ st.markdown(f"""
     h1, h2, h3, h4, h5, h6 {{
         font-family: '{font_family}', sans-serif !important;
         font-weight: 600;
-        color: var(--text-color);
+        color: #1F2937;
     }}
     
     .stMetric {{
@@ -199,7 +199,7 @@ def get_streamlit_layout():
     """Настройки для всех графиков в стиле Streamlit"""
     return {
         'font': dict(size=16, family=f"'{font_family}', Arial, sans-serif"),
-        'title_font': dict(size=24, family=f"'{font_family}', Arial, sans-serif", color=STREAMLIT_COLORS['dark']),
+        'title_font': dict(size=24, family=f"'{font_family}', Arial, sans-serif", color="#1F2937"),
         'plot_bgcolor': 'rgba(0,0,0,0)',
         'paper_bgcolor': 'rgba(0,0,0,0)',
         'margin': dict(l=60, r=60, t=100, b=60),
