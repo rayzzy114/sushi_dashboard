@@ -157,7 +157,7 @@ st.markdown(f"""
     h1, h2, h3, h4, h5, h6 {{
         font-family: "{font_family}", sans-serif !important;
         font-weight: 600;
-        color: #1F2937;
+        color: #FF8A65;
     }}
     
     .stMetric {{
@@ -199,7 +199,7 @@ def get_streamlit_layout():
     """Настройки для всех графиков в стиле Streamlit"""
     return {
         'font': dict(size=16, family=f'"{font_family}", Arial, sans-serif'),
-        'title_font': dict(size=24, family=f'"{font_family}", Arial, sans-serif', color="#1F2937"),
+        'title_font': dict(size=24, family=f'"{font_family}", Arial, sans-serif', color="#FF8A65"),
         'plot_bgcolor': 'rgba(0,0,0,0)',
         'paper_bgcolor': 'rgba(0,0,0,0)',
         'margin': dict(l=60, r=60, t=100, b=60),
@@ -235,8 +235,7 @@ def create_custom_chart(fig, title_color=None):
         showlegend=True,
         legend=dict(
             bgcolor="rgba(255,255,255,0.8)",
-            bordercolor=STREAMLIT_COLORS['light'],
-            borderwidth=1,
+            borderwidth=0,
             font=dict(family=f'"{font_family}", Arial, sans-serif', size=12)
         )
     )
