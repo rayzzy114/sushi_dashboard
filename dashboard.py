@@ -223,10 +223,32 @@ def load_data():
         # Данные профиля потребителей
         df_profile = pd.read_excel('профиль_потребителя.xlsx')
         
+        # Очищаем данные от Excel ошибок
+        df_market = clean_excel_errors(df_market)
+        df_profile = clean_excel_errors(df_profile)
+        
         return df_market, df_profile
     except Exception as e:
         st.error(f"Ошибка загрузки данных: {e}")
         return None, None
+
+def clean_excel_errors(df):
+    """Очищает данные от Excel ошибок типа #REF!, #N/A, #VALUE! и т.д."""
+    df_clean = df.copy()
+    
+    # Список Excel ошибок для удаления
+    excel_errors = ['#REF!', '#N/A', '#VALUE!', '#DIV/0!', '#NUM!', '#NAME?', '#NULL!']
+    
+    for col in df_clean.columns:
+        # Заменяем Excel ошибки на NaN
+        for error in excel_errors:
+            df_clean[col] = df_clean[col].replace(error, np.nan)
+            # Также проверяем строковые представления
+            mask = df_clean[col].astype(str).str.contains(error, na=False)
+            if mask.any():
+                df_clean.loc[mask, col] = np.nan
+    
+    return df_clean
 
 def create_custom_chart(fig, title_color=None):
     """Применяет кастомные настройки к графику"""
@@ -545,6 +567,20 @@ def main():
         if price_columns:
             st.info(f"📊 Найденные колонки с ценами: {', '.join(price_columns[:3])}...")
             
+            # Анализируем количество данных в каждой ценовой колонке
+            st.markdown("#### 📈 Статистика по ценовым данным")
+            price_stats = {}
+            for col in price_columns:
+                non_null_count = df_market[col].count()
+                price_stats[col] = non_null_count
+                
+            # Показываем статистику
+            stats_df = pd.DataFrame([
+                {"Колонка": col, "Количество ответов": count} 
+                for col, count in price_stats.items()
+            ])
+            st.dataframe(stats_df, use_container_width=True)
+            
             col1_tab3, col2_tab3 = st.columns(2)
             
             # Ищем конкретные колонки по ключевым словам
@@ -555,11 +591,11 @@ def main():
             with col1_tab3:
                 if max_price_cols:
                     max_price_data = df_market[max_price_cols[0]].dropna()
-                    if not max_price_data.empty:
+                    if len(max_price_data) >= 3:  # Минимум 3 значения для графика
                         fig_max_price = px.histogram(
                             x=max_price_data,
                             title="💸 Максимальная приемлемая цена",
-                            nbins=10,
+                            nbins=min(10, len(max_price_data)),
                             color_discrete_sequence=[STREAMLIT_COLORS['primary']]
                         )
                         fig_max_price.update_layout(
@@ -569,17 +605,25 @@ def main():
                         )
                         fig_max_price = create_custom_chart(fig_max_price)
                         st.plotly_chart(fig_max_price, use_container_width=True)
+                        
+                        # Показываем статистику
+                        st.markdown(f"**📊 Статистика по максимальной цене:**")
+                        st.write(f"• Респондентов: {len(max_price_data)}")
+                        st.write(f"• Средняя цена: {max_price_data.mean():.0f} ₽")
+                        st.write(f"• Диапазон: {max_price_data.min():.0f} - {max_price_data.max():.0f} ₽")
+                    else:
+                        st.warning(f"⚠️ Недостаточно данных для максимальной цены (только {len(max_price_data)} ответов)")
                 else:
                     st.info("💭 Данные о максимальной цене не найдены")
             
             with col2_tab3:
                 if min_price_cols:
                     min_price_data = df_market[min_price_cols[0]].dropna()
-                    if not min_price_data.empty:
+                    if len(min_price_data) >= 3:  # Минимум 3 значения для графика
                         fig_min_price = px.histogram(
                             x=min_price_data,
                             title="✨ Минимальная цена для качества",
-                            nbins=10,
+                            nbins=min(10, len(min_price_data)),
                             color_discrete_sequence=[STREAMLIT_COLORS['success']]
                         )
                         fig_min_price.update_layout(
@@ -589,13 +633,21 @@ def main():
                         )
                         fig_min_price = create_custom_chart(fig_min_price)
                         st.plotly_chart(fig_min_price, use_container_width=True)
+                        
+                        # Показываем статистику  
+                        st.markdown(f"**📊 Статистика по минимальной цене:**")
+                        st.write(f"• Респондентов: {len(min_price_data)}")
+                        st.write(f"• Средняя цена: {min_price_data.mean():.0f} ₽")
+                        st.write(f"• Диапазон: {min_price_data.min():.0f} - {min_price_data.max():.0f} ₽")
+                    else:
+                        st.warning(f"⚠️ Недостаточно данных для минимальной цены (только {len(min_price_data)} ответов)")
                 else:
                     st.info("💭 Данные о минимальной цене не найдены")
             
             # Справедливая цена
             if fair_price_cols:
                 fair_price_data = df_market[fair_price_cols[0]].dropna()
-                if not fair_price_data.empty:
+                if len(fair_price_data) >= 3:
                     fig_fair_price = px.box(
                         y=fair_price_data,
                         title="⚖️ Распределение справедливой цены",
@@ -604,6 +656,17 @@ def main():
                     fig_fair_price.update_layout(yaxis_title="Цена (руб.)")
                     fig_fair_price = create_custom_chart(fig_fair_price)
                     st.plotly_chart(fig_fair_price, use_container_width=True)
+                    
+                    # Дополнительная статистика
+                    col_stats1, col_stats2, col_stats3 = st.columns(3)
+                    with col_stats1:
+                        st.metric("Респондентов", len(fair_price_data))
+                    with col_stats2:
+                        st.metric("Средняя цена", f"{fair_price_data.mean():.0f} ₽")
+                    with col_stats3:
+                        st.metric("Медианная цена", f"{fair_price_data.median():.0f} ₽")
+                else:
+                    st.warning(f"⚠️ Недостаточно данных для справедливой цены (только {len(fair_price_data)} ответов)")
             
             # Общий анализ всех ценовых колонок
             if price_columns:
@@ -612,6 +675,12 @@ def main():
                 if len(numeric_price_cols) > 0:
                     price_data = df_market[numeric_price_cols].describe().round(2)
                     st.dataframe(price_data, use_container_width=True)
+                    
+                    # Предупреждение о малом количестве данных
+                    low_data_cols = [col for col in numeric_price_cols if df_market[col].count() < 10]
+                    if low_data_cols:
+                        st.warning(f"⚠️ **Внимание:** В следующих колонках мало данных (менее 10 ответов): {', '.join(low_data_cols)}")
+                        st.info("💡 **Рекомендация:** Необходимо собрать больше данных для более точного анализа ценообразования.")
         else:
             st.warning("🔍 Не найдены колонки с ценовыми данными. Проверьте структуру файла.")
     
