@@ -234,7 +234,7 @@ def create_custom_chart(fig, title_color=None):
     fig.update_layout(
         showlegend=True,
         legend=dict(
-            bgcolor="rgba(255,255,255,0.8)",
+            bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
             font=dict(family=f'"{font_family}", Arial, sans-serif', size=12)
         )
