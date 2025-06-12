@@ -116,7 +116,7 @@ st.markdown(f"""
         font-family: "{font_family}", sans-serif !important;
         font-weight: 600;
         font-size: 18px;
-        color: #1F2937;
+        color: #FF8A65;
     }}
     
     .stTabs [data-baseweb="tab-list"] button {{
