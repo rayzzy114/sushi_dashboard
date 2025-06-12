@@ -215,13 +215,18 @@ def get_streamlit_layout():
 
 @st.cache_data
 def load_data():
-    """Загрузка данных из Excel файла"""
+    """Загрузка данных из Excel файлов"""
     try:
-        df = pd.read_excel('данные по рынку суши.xlsx')
-        return df
+        # Основные данные по рынку суши
+        df_market = pd.read_excel('данные по рынку суши.xlsx')
+        
+        # Данные профиля потребителей
+        df_profile = pd.read_excel('профиль_потребителя.xlsx')
+        
+        return df_market, df_profile
     except Exception as e:
         st.error(f"Ошибка загрузки данных: {e}")
-        return None
+        return None, None
 
 def create_custom_chart(fig, title_color=None):
     """Применяет кастомные настройки к графику"""
@@ -251,10 +256,10 @@ def main():
     st.sidebar.markdown(f"**🎨 Шрифт:** {font_status}")
     
     # Загрузка данных
-    df = load_data()
+    df_market, df_profile = load_data()
     
-    if df is None:
-        st.error("Не удалось загрузить данные. Проверьте наличие файла 'данные по рынку суши.xlsx'")
+    if df_market is None or df_profile is None:
+        st.error("Не удалось загрузить данные. Проверьте наличие файлов 'данные по рынку суши.xlsx' и 'профиль_потребителя.xlsx'")
         return
     
     # Боковая панель с фильтрами
@@ -283,13 +288,18 @@ def main():
     
     # Показать сырые данные
     if st.sidebar.checkbox("📊 Показать исходные данные"):
-        with st.expander("📋 Таблица данных", expanded=False):
-            st.dataframe(df, use_container_width=True)
+        with st.expander("📋 Таблица данных - Рынок суши", expanded=False):
+            st.dataframe(df_market, use_container_width=True)
+        with st.expander("📋 Таблица данных - Профиль потребителей", expanded=False):
+            st.dataframe(df_profile, use_container_width=True)
     
     # Отладочная информация
     if st.sidebar.checkbox("🔍 Показать структуру данных"):
-        with st.expander("🗂️ Названия колонок", expanded=False):
-            for i, col in enumerate(df.columns):
+        with st.expander("🗂️ Названия колонок - Рынок суши", expanded=False):
+            for i, col in enumerate(df_market.columns):
+                st.write(f"`{i}:` {col}")
+        with st.expander("🗂️ Названия колонок - Профиль потребителей", expanded=False):
+            for i, col in enumerate(df_profile.columns):
                 st.write(f"`{i}:` {col}")
     
     # Основные метрики с красивыми карточками
@@ -298,36 +308,29 @@ def main():
     # Вычисляем реальные показатели из данных
     top_restaurant = ""
     avg_satisfaction = 0
-    price_range = ""
     top_purpose = ""
     
     # Находим самый популярный ресторан
-    if 'Какой суши-ресторан  посещают чаще всего' in df.columns and 'кол-во.3' in df.columns:
-        popular_data = df[['Какой суши-ресторан  посещают чаще всего', 'кол-во.3']].dropna()
+    if 'Какой суши-ресторан  посещают чаще всего' in df_market.columns and 'кол-во.3' in df_market.columns:
+        popular_data = df_market[['Какой суши-ресторан  посещают чаще всего', 'кол-во.3']].dropna()
         if not popular_data.empty:
             top_restaurant = popular_data.loc[popular_data['кол-во.3'].idxmax(), 'Какой суши-ресторан  посещают чаще всего']
     
-    # Находим среднюю удовлетворенность
-    satisfaction_cols = [col for col in df.columns if 'балл' in col]
+    # Находим среднюю удовлетворенность (исправляем на формат x/5)
+    satisfaction_cols = [col for col in df_market.columns if 'балл' in col]
     if satisfaction_cols:
-        avg_satisfaction = df[satisfaction_cols[0]].mean()
-    
-    # Находим ценовой диапазон
-    price_cols = [col for col in df.columns if any(word in col.lower() for word in ['цена', 'руб'])]
-    if price_cols:
-        numeric_price_cols = df[price_cols].select_dtypes(include=[np.number]).columns
-        if len(numeric_price_cols) > 0:
-            min_price = df[numeric_price_cols].min().min()
-            max_price = df[numeric_price_cols].max().max()
-            price_range = f"{int(min_price)}-{int(max_price)} ₽"
+        avg_satisfaction = df_market[satisfaction_cols[0]].mean()
+        # Преобразуем из 10-балльной в 5-балльную систему
+        if avg_satisfaction > 5:
+            avg_satisfaction = avg_satisfaction / 2
     
     # Находим топ цель посещения
-    if 'цель посещения' in df.columns and 'кол-во' in df.columns:
-        purpose_data = df[['цель посещения', 'кол-во']].dropna()
+    if 'цель посещения' in df_market.columns and 'кол-во' in df_market.columns:
+        purpose_data = df_market[['цель посещения', 'кол-во']].dropna()
         if not purpose_data.empty:
             top_purpose = purpose_data.loc[purpose_data['кол-во'].idxmax(), 'цель посещения']
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown(f"""
@@ -354,28 +357,6 @@ def main():
     with col2:
         st.markdown(f"""
         <div style="
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            padding: 2rem;
-            border-radius: 20px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
-            transform: translateY(0);
-            transition: all 0.3s ease;
-            border: none;
-            position: relative;
-            overflow: hidden;
-        ">
-            <div style="font-size: 3rem; margin-bottom: 0.5rem;">💰</div>
-            <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Ценовой диапазон</div>
-            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{price_range if price_range else "Рассчитываем..."}</div>
-            <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div style="
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             padding: 2rem;
             border-radius: 20px;
@@ -390,12 +371,12 @@ def main():
         ">
             <div style="font-size: 3rem; margin-bottom: 0.5rem;">⭐</div>
             <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Средняя оценка</div>
-            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{f"{avg_satisfaction:.1f}/10" if avg_satisfaction > 0 else "Анализируем..."}</div>
+            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{f"{avg_satisfaction:.1f}/5" if avg_satisfaction > 0 else "Анализируем..."}</div>
             <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
         """, unsafe_allow_html=True)
     
-    with col4:
+    with col3:
         st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
@@ -430,11 +411,12 @@ def main():
     st.markdown("---")
     
     # Вкладки для разных анализов
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🎯 Посещаемость", 
         "🏪 Рестораны", 
         "💰 Ценообразование", 
-        "📈 Удовлетворенность"
+        "📈 Удовлетворенность",
+        "👥 Профиль потребителей"
     ])
     
     with tab1:
@@ -444,8 +426,8 @@ def main():
         
         with col1_tab1:
             # График целей посещения
-            if 'цель посещения' in df.columns and 'кол-во' in df.columns:
-                purpose_data = df[['цель посещения', 'кол-во']].dropna()
+            if 'цель посещения' in df_market.columns and 'кол-во' in df_market.columns:
+                purpose_data = df_market[['цель посещения', 'кол-во']].dropna()
                 if not purpose_data.empty:
                     fig_purpose = px.pie(
                         purpose_data, 
@@ -465,9 +447,9 @@ def main():
         
         with col2_tab1:
             # График частоты посещений
-            if 'Как часто посещают суши-рестораны' in df.columns:
-                frequency_col = df.columns[df.columns.str.contains('кол-во')][1] if len(df.columns[df.columns.str.contains('кол-во')]) > 1 else 'кол-во'
-                frequency_data = df[['Как часто посещают суши-рестораны', frequency_col]].dropna()
+            if 'Как часто посещают суши-рестораны' in df_market.columns:
+                frequency_col = df_market.columns[df_market.columns.str.contains('кол-во')][1] if len(df_market.columns[df_market.columns.str.contains('кол-во')]) > 1 else 'кол-во'
+                frequency_data = df_market[['Как часто посещают суши-рестораны', frequency_col]].dropna()
                 if not frequency_data.empty:
                     fig_freq = px.bar(
                         frequency_data,
@@ -494,8 +476,8 @@ def main():
         
         with col1_tab2:
             # Топ известных ресторанов
-            if 'Какие суши-рестораны в г. Омск  знают' in df.columns and 'кол-во.1' in df.columns:
-                known_data = df[['Какие суши-рестораны в г. Омск  знают', 'кол-во.1']].dropna()
+            if 'Какие суши-рестораны в г. Омск  знают' in df_market.columns and 'кол-во.1' in df_market.columns:
+                known_data = df_market[['Какие суши-рестораны в г. Омск  знают', 'кол-во.1']].dropna()
                 if not known_data.empty:
                     known_data = known_data.sort_values('кол-во.1', ascending=True)
                     fig_known = px.bar(
@@ -516,8 +498,8 @@ def main():
         
         with col2_tab2:
             # Фактическое посещение
-            if 'В какие суши-рестораны в г. Омск бычно ходят' in df.columns and 'кол-во.2' in df.columns:
-                visit_data = df[['В какие суши-рестораны в г. Омск бычно ходят', 'кол-во.2']].dropna()
+            if 'В какие суши-рестораны в г. Омск бычно ходят' in df_market.columns and 'кол-во.2' in df_market.columns:
+                visit_data = df_market[['В какие суши-рестораны в г. Омск бычно ходят', 'кол-во.2']].dropna()
                 if not visit_data.empty:
                     visit_data = visit_data.sort_values('кол-во.2', ascending=False)
                     fig_visit = px.pie(
@@ -537,8 +519,8 @@ def main():
                     st.plotly_chart(fig_visit, use_container_width=True)
         
         # Самые популярные рестораны
-        if 'Какой суши-ресторан  посещают чаще всего' in df.columns and 'кол-во.3' in df.columns:
-            popular_data = df[['Какой суши-ресторан  посещают чаще всего', 'кол-во.3']].dropna()
+        if 'Какой суши-ресторан  посещают чаще всего' in df_market.columns and 'кол-во.3' in df_market.columns:
+            popular_data = df_market[['Какой суши-ресторан  посещают чаще всего', 'кол-во.3']].dropna()
             if not popular_data.empty:
                 fig_popular = px.treemap(
                     popular_data,
@@ -556,7 +538,7 @@ def main():
         
         # Поиск колонок с ценами
         price_columns = []
-        for col in df.columns:
+        for col in df_market.columns:
             if any(word in col.lower() for word in ['цена', 'цены', 'стоимость', 'руб']):
                 price_columns.append(col)
         
@@ -566,13 +548,13 @@ def main():
             col1_tab3, col2_tab3 = st.columns(2)
             
             # Ищем конкретные колонки по ключевым словам
-            max_price_cols = [col for col in df.columns if 'выше' in col.lower() and 'цен' in col.lower()]
-            min_price_cols = [col for col in df.columns if 'ниже' in col.lower() and 'цен' in col.lower()]
-            fair_price_cols = [col for col in df.columns if 'справедлив' in col.lower() and 'цен' in col.lower()]
+            max_price_cols = [col for col in df_market.columns if 'выше' in col.lower() and 'цен' in col.lower()]
+            min_price_cols = [col for col in df_market.columns if 'ниже' in col.lower() and 'цен' in col.lower()]
+            fair_price_cols = [col for col in df_market.columns if 'справедлив' in col.lower() and 'цен' in col.lower()]
             
             with col1_tab3:
                 if max_price_cols:
-                    max_price_data = df[max_price_cols[0]].dropna()
+                    max_price_data = df_market[max_price_cols[0]].dropna()
                     if not max_price_data.empty:
                         fig_max_price = px.histogram(
                             x=max_price_data,
@@ -592,7 +574,7 @@ def main():
             
             with col2_tab3:
                 if min_price_cols:
-                    min_price_data = df[min_price_cols[0]].dropna()
+                    min_price_data = df_market[min_price_cols[0]].dropna()
                     if not min_price_data.empty:
                         fig_min_price = px.histogram(
                             x=min_price_data,
@@ -612,7 +594,7 @@ def main():
             
             # Справедливая цена
             if fair_price_cols:
-                fair_price_data = df[fair_price_cols[0]].dropna()
+                fair_price_data = df_market[fair_price_cols[0]].dropna()
                 if not fair_price_data.empty:
                     fig_fair_price = px.box(
                         y=fair_price_data,
@@ -626,9 +608,9 @@ def main():
             # Общий анализ всех ценовых колонок
             if price_columns:
                 st.markdown("#### 📈 Сравнительный анализ цен")
-                numeric_price_cols = df[price_columns].select_dtypes(include=[np.number]).columns
+                numeric_price_cols = df_market[price_columns].select_dtypes(include=[np.number]).columns
                 if len(numeric_price_cols) > 0:
-                    price_data = df[numeric_price_cols].describe().round(2)
+                    price_data = df_market[numeric_price_cols].describe().round(2)
                     st.dataframe(price_data, use_container_width=True)
         else:
             st.warning("🔍 Не найдены колонки с ценовыми данными. Проверьте структуру файла.")
@@ -638,7 +620,7 @@ def main():
         
         # Поиск колонок с удовлетворенностью
         satisfaction_columns = []
-        for col in df.columns:
+        for col in df_market.columns:
             if any(word in col.lower() for word in ['удовлетвор', 'оценк', 'балл', 'рейтинг']):
                 satisfaction_columns.append(col)
         
@@ -648,15 +630,15 @@ def main():
             col1_tab4, col2_tab4 = st.columns(2)
             
             # Поиск конкретных колонок
-            general_satisfaction_cols = [col for col in df.columns if 'удовлетворены суши-рестораном' in col]
-            characteristics_cols = [col for col in df.columns if 'характеристик' in col.lower()]
-            importance_cols = [col for col in df.columns if 'важность' in col.lower()]
+            general_satisfaction_cols = [col for col in df_market.columns if 'удовлетворены суши-рестораном' in col]
+            characteristics_cols = [col for col in df_market.columns if 'характеристик' in col.lower()]
+            importance_cols = [col for col in df_market.columns if 'важность' in col.lower()]
             
             with col1_tab4:
-                if general_satisfaction_cols and any('кол-во' in col for col in df.columns):
-                    count_col = [col for col in df.columns if 'кол-во.4' in col]
+                if general_satisfaction_cols and any('кол-во' in col for col in df_market.columns):
+                    count_col = [col for col in df_market.columns if 'кол-во.4' in col]
                     if count_col:
-                        satisfaction_data = df[[general_satisfaction_cols[0], count_col[0]]].dropna()
+                        satisfaction_data = df_market[[general_satisfaction_cols[0], count_col[0]]].dropna()
                         if not satisfaction_data.empty:
                             fig_satisfaction = px.bar(
                                 satisfaction_data,
@@ -676,8 +658,8 @@ def main():
                     st.info("💭 Данные об общей удовлетворенности не найдены")
             
             with col2_tab4:
-                if characteristics_cols and 'балл' in df.columns:
-                    char_data = df[[characteristics_cols[0], 'балл']].dropna()
+                if characteristics_cols and 'балл' in df_market.columns:
+                    char_data = df_market[[characteristics_cols[0], 'балл']].dropna()
                     if not char_data.empty:
                         fig_char = px.scatter(
                             char_data,
@@ -699,8 +681,8 @@ def main():
                     st.info("💭 Данные об оценке характеристик не найдены")
             
             # Важность характеристик
-            if importance_cols and '%' in df.columns:
-                importance_data = df[[importance_cols[0], '%']].dropna()
+            if importance_cols and '%' in df_market.columns:
+                importance_data = df_market[[importance_cols[0], '%']].dropna()
                 if not importance_data.empty:
                     fig_importance = px.bar(
                         importance_data,
@@ -721,12 +703,136 @@ def main():
             # Общий анализ всех колонок с оценками
             if satisfaction_columns:
                 st.markdown("#### 📊 Статистика по всем оценкам")
-                numeric_satisfaction = df[satisfaction_columns].select_dtypes(include=[np.number])
+                numeric_satisfaction = df_market[satisfaction_columns].select_dtypes(include=[np.number])
                 if not numeric_satisfaction.empty:
                     satisfaction_stats = numeric_satisfaction.describe().round(2)
                     st.dataframe(satisfaction_stats, use_container_width=True)
         else:
             st.warning("🔍 Не найдены колонки с данными об удовлетворенности.")
+    
+    with tab5:
+        st.markdown("### 👥 Профиль потребителей суши-ресторанов")
+        
+        col1_tab5, col2_tab5 = st.columns(2)
+        
+        with col1_tab5:
+            # Анализ по полу
+            if 'пол' in df_profile.columns:
+                gender_data = df_profile['пол'].value_counts()
+                fig_gender = px.pie(
+                    values=gender_data.values,
+                    names=gender_data.index,
+                    title="👥 Распределение по полу",
+                    color_discrete_sequence=[STREAMLIT_COLORS['primary'], STREAMLIT_COLORS['secondary']]
+                )
+                fig_gender.update_traces(
+                    textposition='inside', 
+                    textinfo='percent+label', 
+                    textfont_size=15,
+                    hovertemplate='<b>%{label}</b><br>Количество: %{value}<br>Процент: %{percent}<extra></extra>'
+                )
+                fig_gender = create_custom_chart(fig_gender)
+                st.plotly_chart(fig_gender, use_container_width=True)
+        
+        with col2_tab5:
+            # Анализ по возрасту
+            if 'возраст' in df_profile.columns:
+                age_data = df_profile['возраст'].value_counts()
+                fig_age = px.bar(
+                    x=age_data.index,
+                    y=age_data.values,
+                    title="🎂 Распределение по возрастам",
+                    color_discrete_sequence=[STREAMLIT_COLORS['info']]
+                )
+                fig_age.update_layout(
+                    xaxis_title="Возрастная группа",
+                    yaxis_title="Количество респондентов"
+                )
+                fig_age.update_traces(
+                    hovertemplate='<b>%{x}</b><br>Количество: %{y}<extra></extra>'
+                )
+                fig_age = create_custom_chart(fig_age)
+                st.plotly_chart(fig_age, use_container_width=True)
+        
+        col3_tab5, col4_tab5 = st.columns(2)
+        
+        with col3_tab5:
+            # Анализ по доходу
+            if 'доход' in df_profile.columns:
+                income_data = df_profile['доход'].value_counts()
+                fig_income = px.pie(
+                    values=income_data.values,
+                    names=income_data.index,
+                    title="💰 Распределение по доходу",
+                    color_discrete_sequence=[STREAMLIT_COLORS['success'], STREAMLIT_COLORS['warning'], STREAMLIT_COLORS['purple'], STREAMLIT_COLORS['accent']]
+                )
+                fig_income.update_traces(
+                    textposition='inside', 
+                    textinfo='percent+label', 
+                    textfont_size=12,
+                    hovertemplate='<b>%{label}</b><br>Количество: %{value}<br>Процент: %{percent}<extra></extra>'
+                )
+                fig_income = create_custom_chart(fig_income)
+                st.plotly_chart(fig_income, use_container_width=True)
+        
+        with col4_tab5:
+            # Топ любимых суши/роллов
+            if 'Какие суши\\роллы  любят больше всего' in df_profile.columns:
+                # Разбираем данные по любимым суши/роллам
+                sushi_data = df_profile['Какие суши\\роллы  любят больше всего'].dropna()
+                
+                # Создаем список всех упомянутых суши/роллов
+                all_sushi = []
+                for entry in sushi_data:
+                    if isinstance(entry, str):
+                        # Разделяем по запятым и очищаем
+                        sushi_list = [s.strip().lower() for s in entry.split(',')]
+                        all_sushi.extend(sushi_list)
+                
+                # Подсчитываем частоту
+                from collections import Counter
+                sushi_counts = Counter(all_sushi)
+                
+                # Берем топ-10
+                top_sushi = dict(sushi_counts.most_common(10))
+                
+                if top_sushi:
+                    fig_sushi = px.bar(
+                        x=list(top_sushi.values()),
+                        y=list(top_sushi.keys()),
+                        orientation='h',
+                        title="🍣 Топ-10 любимых суши/роллов",
+                        color=list(top_sushi.values()),
+                        color_continuous_scale=[[0, STREAMLIT_COLORS['light']], [1, STREAMLIT_COLORS['primary']]]
+                    )
+                    fig_sushi.update_layout(
+                        xaxis_title="Количество упоминаний",
+                        yaxis_title="Суши/Роллы"
+                    )
+                    fig_sushi = create_custom_chart(fig_sushi)
+                    st.plotly_chart(fig_sushi, use_container_width=True)
+        
+        # Статистическая сводка профиля потребителей
+        st.markdown("#### 📈 Общая статистика профиля потребителей")
+        col_stats1, col_stats2 = st.columns(2)
+        
+        with col_stats1:
+            st.markdown("**📊 Основные показатели:**")
+            total_respondents = len(df_profile)
+            st.metric("Общее количество респондентов", total_respondents)
+            
+            if 'пол' in df_profile.columns:
+                female_pct = (df_profile['пол'] == 'Женский').mean() * 100
+                st.metric("Доля женщин", f"{female_pct:.1f}%")
+        
+        with col_stats2:
+            if 'возраст' in df_profile.columns:
+                young_pct = (df_profile['возраст'] == '18-24').mean() * 100
+                st.metric("Доля молодежи (18-24)", f"{young_pct:.1f}%")
+            
+            if 'доход' in df_profile.columns:
+                middle_income = df_profile['доход'].value_counts().index[0]
+                st.metric("Наиболее частый доход", middle_income)
     
     # Дополнительная информация
     st.markdown("---")
