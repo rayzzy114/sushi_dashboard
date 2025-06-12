@@ -292,46 +292,139 @@ def main():
                 st.write(f"`{i}:` {col}")
     
     # Основные метрики с красивыми карточками
-    st.markdown("### 📈 Ключевые показатели")
+    st.markdown("### 🎨 Ключевые показатели рынка")
+    
+    # Вычисляем реальные показатели из данных
+    top_restaurant = ""
+    avg_satisfaction = 0
+    price_range = ""
+    top_purpose = ""
+    
+    # Находим самый популярный ресторан
+    if 'Какой суши-ресторан  посещают чаще всего' in df.columns and 'кол-во.3' in df.columns:
+        popular_data = df[['Какой суши-ресторан  посещают чаще всего', 'кол-во.3']].dropna()
+        if not popular_data.empty:
+            top_restaurant = popular_data.loc[popular_data['кол-во.3'].idxmax(), 'Какой суши-ресторан  посещают чаще всего']
+    
+    # Находим среднюю удовлетворенность
+    satisfaction_cols = [col for col in df.columns if 'балл' in col]
+    if satisfaction_cols:
+        avg_satisfaction = df[satisfaction_cols[0]].mean()
+    
+    # Находим ценовой диапазон
+    price_cols = [col for col in df.columns if any(word in col.lower() for word in ['цена', 'руб'])]
+    if price_cols:
+        numeric_price_cols = df[price_cols].select_dtypes(include=[np.number]).columns
+        if len(numeric_price_cols) > 0:
+            min_price = df[numeric_price_cols].min().min()
+            max_price = df[numeric_price_cols].max().max()
+            price_range = f"{int(min_price)}-{int(max_price)} ₽"
+    
+    # Находим топ цель посещения
+    if 'цель посещения' in df.columns and 'кол-во' in df.columns:
+        purpose_data = df[['цель посещения', 'кол-во']].dropna()
+        if not purpose_data.empty:
+            top_purpose = purpose_data.loc[purpose_data['кол-во'].idxmax(), 'цель посещения']
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric(
-            label="📋 Записей в данных",
-            value=len(df),
-            delta="строк данных"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🏆</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Лидер рынка</div>
+            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{top_restaurant if top_restaurant else "Анализируем..."}</div>
+            <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric(
-            label="📊 Параметров анализа",
-            value=len(df.columns),
-            delta="переменных"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">💰</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Ценовой диапазон</div>
+            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{price_range if price_range else "Рассчитываем..."}</div>
+            <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        non_null_ratio = (df.count().sum() / (len(df) * len(df.columns)) * 100)
-        st.metric(
-            label="✅ Заполненность данных",
-            value=f"{non_null_ratio:.1f}%",
-            delta="качество данных"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">⭐</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Средняя оценка</div>
+            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{f"{avg_satisfaction:.1f}/10" if avg_satisfaction > 0 else "Анализируем..."}</div>
+            <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
-        st.metric(
-            label="🔢 Числовых колонок",
-            value=len(numeric_cols),
-            delta="для анализа"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(250, 112, 154, 0.3);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎯</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Топ цель</div>
+            <div style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">{top_purpose if top_purpose else "Определяем..."}</div>
+            <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Добавляем CSS для hover эффектов
+    st.markdown("""
+    <style>
+    div[style*="background: linear-gradient"]:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
     
